@@ -1,0 +1,28 @@
+# Node
+**/node_modules
+**/dist
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+
+# Upload/output directories
+backend/node/uploads/*
+!backend/node/uploads/.gitkeep
+backend/node/outputs/*
+!backend/node/outputs/.gitkeep
+
+# Python
+**/.venv
+**/venv
+**/__pycache__
+**/.pytest_cache
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+**/*.log
