@@ -3,5 +3,11 @@ uvicorn
 torch
 diffusers
 transformers
+accelerate
+safetensors
 opencv-python
 pillow
+controlnet-aux
+xformers
+requests
+python-multipart

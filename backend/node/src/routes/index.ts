@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import authRouter from './auth';
 import eventsRouter from './events';
+import generateRouter from './generate';
 
 const router = Router();
 
@@ -11,5 +12,6 @@ router.get('/', (_req: Request, res: Response) => {
 
 router.use('/auth', authRouter);
 router.use('/events', eventsRouter);
+router.use('/', generateRouter);
 
 export default router;

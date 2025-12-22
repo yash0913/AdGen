@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Sparkles, Upload, X, Download, ArrowLeft, Loader2, History, Layout } from "lucide-react"
-import { logEvent } from "@/lib/api"
+import { logEvent, generateDesigns } from "@/lib/api"
 
 interface GeneratedDesign {
   id: string
@@ -62,21 +62,41 @@ export default function GeneratorPage() {
     setIsGenerating(true)
     logEvent("generate_submitted", { industry, platform, brandName, hasImage: !!productImage, template: selectedTemplate })
 
-    // Mock API call - simulate 2-3 second delay
-    await new Promise((resolve) => setTimeout(resolve, 2500))
+    try {
+      // Create FormData
+      const formData = new FormData()
+      formData.append("industry", industry)
+      formData.append("platform", platform)
+      formData.append("brandName", brandName)
+      formData.append("headline", headline)
+      formData.append("ctaText", ctaText)
+      if (productImage) {
+        formData.append("productImage", productImage)
+      }
+      if (selectedTemplate) {
+        formData.append("template", selectedTemplate)
+      }
 
-    // Mock response with placeholder images
-    const mockDesigns: GeneratedDesign[] = [
-      { id: "1", url: `/placeholder.svg?height=800&width=800&query=${platform}+${industry}+ad+design+1`, variation: 1 },
-      { id: "2", url: `/placeholder.svg?height=800&width=800&query=${platform}+${industry}+ad+design+2`, variation: 2 },
-      { id: "3", url: `/placeholder.svg?height=800&width=800&query=${platform}+${industry}+ad+design+3`, variation: 3 },
-      { id: "4", url: `/placeholder.svg?height=800&width=800&query=${platform}+${industry}+ad+design+4`, variation: 4 },
-    ]
+      // Call real API
+      const result = await generateDesigns(formData)
+      
+      // Transform response to GeneratedDesign format
+      const designs: GeneratedDesign[] = result.images.map((imagePath: string, index: number) => ({
+        id: `${result.requestId}-${index + 1}`,
+        url: imagePath,
+        variation: index + 1
+      }))
 
-    setGeneratedDesigns(mockDesigns)
-    setHistory((prev) => [{ id: Date.now().toString(), timestamp: new Date(), designs: mockDesigns }, ...prev])
-    setIsGenerating(false)
-    logEvent("generate_completed", { count: mockDesigns.length })
+      setGeneratedDesigns(designs)
+      setHistory((prev) => [{ id: result.requestId, timestamp: new Date(), designs }, ...prev])
+      logEvent("generate_completed", { count: designs.length, requestId: result.requestId })
+      
+    } catch (error) {
+      console.error("Generation error:", error)
+      alert(`Generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   const handleDownload = (design: GeneratedDesign) => {
@@ -169,7 +189,7 @@ export default function GeneratorPage() {
                       {item.designs.map((design) => (
                         <div key={design.id} className="aspect-square rounded-lg overflow-hidden border border-border">
                           <img
-                            src={design.url || "/placeholder.svg"}
+                            src={design.url.startsWith('/outputs') ? `http://localhost:5000${design.url}` : design.url || "/placeholder.svg"}
                             alt={`Variation ${design.variation}`}
                             className="w-full h-full object-cover"
                           />
@@ -360,7 +380,7 @@ export default function GeneratorPage() {
                 >
                   <div className="aspect-square relative overflow-hidden bg-muted">
                     <img
-                      src={design.url || "/placeholder.svg"}
+                      src={design.url.startsWith('/outputs') ? `http://localhost:5000${design.url}` : design.url || "/placeholder.svg"}
                       alt={`Variation ${design.variation}`}
                       className="w-full h-full object-cover"
                     />

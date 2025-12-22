@@ -17,6 +17,9 @@ app.use(express.urlencoded({ extended: true }));
 // Static serving for uploads (optional)
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
+// Static serving for generated outputs (CRITICAL)
+app.use('/outputs', express.static(path.resolve(__dirname, '../outputs')));
+
 // Health route
 app.get('/health', (_req: express.Request, res: express.Response) => {
   res.json({ status: 'ok' });
